@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draggable Directions</title>
+    <script defer src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link rel="stylesheet" type="text/css" href="./mapstyle.css" />
+    <!-- <script src="./route.js"></script> -->
+    <script defer src="/__/firebase/9.2.0/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/9.2.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/9.2.0/firebase-database-compat.js"></script>
+
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="map"></div>
+      <div id="sidebar">
+        <p>Total Distance: <span id="total"></span></p>
+        <input id="datetime_client" type="datetime-local"/>
+        <button class="custom-map-control-button" id="locationButton">Вызвать менеджера</button>
+        <!-- <button class="custom-map-control-button">Вызвать менеджера</button> -->
+      </div>
+    </div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJfWvTJfq4nKv9vt6cbjcefvsh9wJB4so&callback=initMap&v=weekly"
+      async
+      defer
+    ></script>
+
+    <script>
+    var map = 0;
+    var locationButton = 0;
+    var infoWindow;
+    var gmapE;
+    var callCreate;
+    var get_route;
+    var dRenderer, dService;
+      function initMap() {
+      
+    //   var manager = new google.maps.LatLng(55.75636585524346, 37.60491988473058);
+    //   var client = new google.maps.LatLng(55.76138972593363, 37.61029924421599);
+
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 10,
+            center: { lat: 55.751244, lng: 37.618423 }, // Moscow.
+        });
+        locationButton = document.createElement("button");
+        locationButton.classList.add("custom-map-control-button");
+        infoWindow = new google.maps.InfoWindow();
+        
+        
+        google.maps.event.addListener(map, "click", (event) => {
+            var clientMarker = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map,
+                    draggable: true,
+                    icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Circle-icons-profile.svg/32px-Circle-icons-profile.svg.png'
+            });
+            google.maps.event.addListener(clientMarker, 'dragend', function() 
+            {
+                    newPos = clientMarker.getPosition().toJSON();
+                    posLat = newPos.lat;
+                    posLng = newPos.lng;
+                    dRenderer.setMap(null);
+                    callCreate(clientMarker);
+                    //get_route(posLat, posLng)
+            });
+        });
+
+
+    //   const directionsService = new google.maps.DirectionsService();
+    //   const directionsRenderer = new google.maps.DirectionsRenderer({
+    //     draggable: false,
+    //     map,
+    //     panel: document.getElementById("panel"),
+    //   });
+    
+    //   directionsRenderer.addListener("directions_changed", () => {
+    //     const directions = directionsRenderer.getDirections();
+    
+    //     if (directions) {
+    //       console.log(computeDistance(directions));
+    //     }
+    //   });
+    //   displayRoute(
+    //     manager,
+    //     client,
+    //     directionsService,
+    //     directionsRenderer
+    //   );
+    }
+    // function displayRoute(origin, destination, service, display) {
+    //   service
+    //     .route({
+    //       origin: origin,
+    //       destination: destination,
+    //       travelMode: google.maps.TravelMode.DRIVING,
+    //       avoidTolls: true,
+    //     })
+    //     .then((result) => {
+    //       display.setDirections(result);
+    //     })
+    //     .catch((e) => {
+    //       alert("Could not display directions due to: " + e);
+    //     });
+    // }
+    
+    // function computeDistance(result) {
+    //   const myroute = result.routes[0];
+    
+    //   if (!myroute) {
+    //     return;
+    //   }
+    //   else {
+    //       return myroute.legs[0].distance.value / 1000;
+    //   }
+    // }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        get_route = async function get_route(posLat, posLng){
+            var datetime = document.getElementById("datetime_client").value;
+                fDatetime = parseInt((datetime[11] + datetime[12])) * 60 + parseInt(datetime[14] + datetime[15]);
+                firebase.database().ref('clients/andrei').set({
+                    latitude: posLat,
+                    longitude: posLng,
+                    status: 'waiting',
+                    datetime: datetime,
+            });
+
+            firebase.database().ref('managers/').orderByValue().once('value', async (snapshot) => {
+                var managers = []
+                console.log(snapshot)
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        managers.push({ name: child.key, lat: child.val().latitude, lng: child.val().longitude, status: child.val().status, endtime: child.val().endtime, distance: Math.sqrt(Math.pow(child.val().latitude - posLat, 2) + Math.pow(child.val().longitude - posLng, 2))})
+                    })
+                    managers.sort(function(a, b) {
+                        return a.distance - b.distance;
+                    });
+
+                    dService = new google.maps.DirectionsService();
+                    dRenderer = new google.maps.DirectionsRenderer({
+                        suppressMarkers: true,
+                        draggable: false,
+                        map,
+                        panel: document.getElementById("panel"),
+                    });
+                    var destinationC = new google.maps.LatLng(posLat, posLng);
+                    var originM;
+                    async function calcDirect(originM, destinationC, method){
+                        dService.route({
+                            origin: originM,
+                            destination: destinationC,
+                            travelMode: google.maps.TravelMode.DRIVING,
+                            avoidTolls: true,
+                        }).then((result) => {
+                            if(method == 'time'){
+                                return result.routes[0].legs[0].duration.value
+                            }
+                            else if(method == 'render'){
+                                dRenderer.setDirections(result);
+                            }
+                        })
+                    }
+                    console.log('doshel do for')
+                    for(let i = 0; i < managers.length; i++){
+                        console.log(managers[i]);
+                        console.log(managers[i].status);
+                        if(i == managers.length){
+                            console.log('breaks why');
+                            break
+                        }
+                        else if(managers[i].status == 'free'){
+                            console.log('work naxyu');
+                            console.log(managers[i], posLat, posLng);
+                            originM = new google.maps.LatLng(managers[i].lat, managers[i].lng);
+                            calcDirect(originM, destinationC, 'render');
+                            break
+                        }
+                        else if(managers[i].status == 'busy' && managers[i+1].status == 'free'){
+                            if(managers[i].endtime != '0'){
+                                mEndtime = managers[i].endtime;
+                                fEndtime = parseInt((mEndtime[11] + mEndtime[12])) * 60 + parseInt(mEndtime[14] + mEndtime[15]);
+                                endtime = (fDatetime - fEndtime) * 60;
+                            }
+                            else {
+                                endtime = 0;
+                            }
+
+                            originM = new google.maps.LatLng(managers[i].lat, managers[i].lng);
+                            originM1 = new google.maps.LatLng(managers[i+1].lat, managers[i+1].lng);
+                            console.log(managers[i]);
+                            var oMtime =  calcDirect(originM, destinationC, 'time') + endtime
+                            if(oMtime > calcDirect(originM1, destinationC, 'time')){
+                                // if(oMtime/60 > 450){
+                                //     console.log('Не можем найти ближайшего для вас менеджера')
+                                    
+                                // } else{
+                                    calcDirect(originM1, destinationC, 'render');
+                                    console.log('works but no render')
+                                // }
+                                break
+                            };
+
+                        }
+                    }
+                }
+            })
+
+            }
+
+        console.log(map);
+        console.log('clicked');
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                (position) => {
+                const pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                };
+                //new Date().toLocaleDateString("en-US", {timeZone: "Europe/Moscow"})
+
+                var posLat = pos.lat;
+                var posLng = pos.lng;
+
+                get_route(posLat, posLng);
+
+                //client marker
+                
+                infoWindow.setPosition(pos);
+                infoWindow.setContent("Location found.");
+                infoWindow.open(map);
+                map.setCenter(pos);
+                },
+                () => {
+                    // handleLocationError(true, infoWindow, map.getCenter());
+                }
+            );
+            } else {
+                // Browser doesn't support Geolocation
+                // handleLocationError(false, infoWindow, map.getCenter());
+            }
+        
+
+    
+        locationButton = document.getElementById("locationButton");
+        locationButton.addEventListener("click", () => {
+            get_route(clientMarker);
+        });
+
+
+        
+      });
+    </script>
+    
+
+
+  </body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draggable Directions</title>
+    <script defer src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link rel="stylesheet" type="text/css" href="./mapstyle.css" />
+    <!-- <script src="./route.js"></script> -->
+    <script defer src="/__/firebase/9.2.0/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/9.2.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/9.2.0/firebase-database-compat.js"></script>
+
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="map"></div>
+      <div id="sidebar">
+        <p>Total Distance: <span id="total"></span></p>
+        <div id="panel"></div>
+      </div>
+    </div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJfWvTJfq4nKv9vt6cbjcefvsh9wJB4so&callback=initMap&v=weekly"
+      async
+    ></script>
+
+    <script>
+      var manager = new google.maps.LatLng();
+      var client = new google.maps.LatLng();
+      function initMap() {
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 10,
+          center: { lat: 55.751244, lng: 37.618423 }, // Moscow.
+        });
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer({
+          draggable: true,
+          map,
+          panel: document.getElementById("panel"),
+        });
+      
+        directionsRenderer.addListener("directions_changed", () => {
+          const directions = directionsRenderer.getDirections();
+      
+          if (directions) {
+            console.log(computeDistance(directions));
+          }
+        });
+        displayRoute(
+          manager,
+          client,
+          directionsService,
+          directionsRenderer
+        );
+    }
+    function displayRoute(origin, destination, service, display) {
+      service
+        .route({
+          origin: origin,
+          destination: destination,
+          travelMode: google.maps.TravelMode.DRIVING,
+          avoidTolls: true,
+        })
+        .then((result) => {
+          display.setDirections(result);
+        })
+        .catch((e) => {
+          alert("Could not display directions due to: " + e);
+        });
+    }
+    
+    function computeDistance(result) {
+      const myroute = result.routes[0];
+    
+      if (!myroute) {
+        return;
+      }
+      else {
+          return myroute.legs[0].distance.value / 1000;
+      }
+    }
+      document.addEventListener('DOMContentLoaded', function() {
+        // firebase.database().ref('managers').set({
+        //   status: true,
+        // });
+      });
+    </script>
+    
+
+
+  </body>
+</html>

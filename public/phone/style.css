@@ -1,0 +1,144 @@
+.mt-2{
+	margin-top: 2vh;
+}
+.mt-5{
+	margin-top: 5vh;
+}
+.mt-7{
+	margin-top: -3vh;
+}
+.ml-1{
+	margin-left: 1vw;
+}
+.ml-2{
+	margin-left: 2vw;
+}
+.ml-5{
+	margin-left: 5vw;
+}
+.knopki{
+	height: 11vh;
+	box-shadow: 0px 0px 22px rgba(0, 0, 0, 0.08);
+	position: fixed;
+	bottom: 0;
+	display: flex;
+	justify-content: space-evenly;
+}
+.dom_kol{
+	height: 33px;
+	width: 31px; 
+	margin-top: 20px;
+	margin-left: 26px;
+	margin-right: 26px;
+}
+.shtorka2{
+	height: 36vh;
+	width: 100vw;
+	position: absolute;
+	bottom: 0;
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+}
+.dela2{
+	height: 9vh;
+	border-radius: 10px;
+	box-shadow: 0px 0px 22px rgba(0, 0, 0, 0.08);
+	margin-top: 1vh;
+	font-size: 12px;
+}
+.dela2-1{
+	height: 9vh;
+	width: 68vw;
+	font-size: 12px;
+}
+.vremya2{
+	font-size: 12px;
+}
+.vh11{
+	height: 14vh;
+}
+.krug{
+	height: 8vh;
+	width: 8vh;
+	border-radius: 4vh;
+	position: absolute;
+	bottom: 38vh;
+	right: 7vw;
+}
+.krug2{
+	height: 5vh;
+	width: 5vh;
+}
+.krug3{
+	height: 8vh;
+	width: 8vh;
+	border-radius: 4vh;
+	position: absolute;
+	bottom: 60vh;
+	right: 7vw;
+}
+
+
+#zatemnenie {
+	background: rgba(0, 0, 0, 0.3);
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: none;
+}
+#okno {
+	width: 80vw;
+	height: 30vh;
+	text-align: center;
+	padding: 15px;
+
+	background: #FFFFFF;
+	border: 1px solid #DEE2E6;
+	box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.12), 0px 20px 20px rgba(0, 0, 0, 0.08);
+	border-radius: 8px;
+
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+}
+#zatemnenie:target {display: block;}
+.close {
+	display: inline-block;
+	color: #0000cc;
+	padding: 0 12px;
+	text-decoration: none;
+	font-size: 14pt;
+	cursor:pointer;
+	position: absolute;
+	top: 2vh;
+	left: 75vw;
+}
+.btn-vstr1{
+	background: #7658E0;
+	border: 0;
+	border-radius: 10px;
+	color: white;
+	padding: 16px 22.5px 16px 22.5px;
+	margin-top: 3vh;
+	width: 80vw;
+}
+.fs-3{
+	font-size: 23px;
+}
+.c-grey{
+	color: #9E9E9E;
+}
+.img-galka{
+	height: 60px;
+	width: 60px;
+	margin-top: 20px;
+}
+.krest{
+	height: 10px;
+	width: 10px;
+}
